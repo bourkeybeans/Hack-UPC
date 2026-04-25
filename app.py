@@ -1,17 +1,14 @@
-from flask import Flask, render_template
+from fastapi import FastAPI
 
 
-app = Flask(__name__)
+app = FastAPI()
 
-@app.route("/")
+@app.get("/")
 def home():
-    return render_template("index.html")
+    return "hello"
 
 
-@app.route("/kieran")
-def helloKieran():
-    return "Hi kieran!"
 
-
-if __name__ == "__main__":
-    app.run()
+@app.get("/connect")
+def connect():
+    return "connecting"
