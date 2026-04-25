@@ -36,7 +36,7 @@ async def eeg_stream(websocket: WebSocket):
 
 
 @router.websocket("/stream-raw")
-async def eeg_stream(websocket: WebSocket):
+async def eeg_stream_raw(websocket: WebSocket):
     await websocket.accept()
 
     manager = get_connection_manager()

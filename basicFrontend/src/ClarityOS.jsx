@@ -373,7 +373,7 @@ export default function ClarityOS() {
     if (wsRef.current) return;
     setError("");
     resetEegBuffers();
-    const socket = new WebSocket(`${WS_BASE}/eeg/stream`);
+    const socket = new WebSocket(`${WS_BASE}/eeg/stream-raw`);
     wsRef.current = socket;
 
     socket.onopen = () => setIsStreaming(true);
