@@ -63,7 +63,7 @@ const AppLayout = ({ children, onLogout, view }) => (
         <div className="w-9 h-9 bg-black rounded-xl flex items-center justify-center shadow-lg shadow-black/10">
           <BrainCircuit className="text-white w-5 h-5" />
         </div>
-        <span className="font-bold text-xl tracking-tight uppercase">NeuroSphere</span>
+        <span className="font-bold text-xl tracking-tight uppercase">ClarityOS</span>
       </div>
       <div className="hidden lg:flex items-center gap-10 text-xs font-bold uppercase tracking-widest text-gray-400">
         <a href="#" className="hover:text-black transition-colors">Protocol</a>

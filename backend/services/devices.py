@@ -45,7 +45,7 @@ async def discover_devices() -> List[DeviceInfo]:
         for d in devices
         if d.name and "Muse" in d.name
     ]
-
+    print(muse_devices)
     return muse_devices
 
 

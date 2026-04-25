@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from services import devices
@@ -15,6 +16,15 @@ async def lifespan(_: FastAPI):
     await get_connection_manager().disconnect()
 
 app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    # Allow any Vite local dev origin (localhost/127.0.0.1 on any port)
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Include the devices service
 app.include_router(

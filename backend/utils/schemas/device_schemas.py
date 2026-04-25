@@ -14,7 +14,7 @@ class ConnectionStatus(BaseModel):
     """
 
     isConnected: bool
-    address: str
+    address: str | None
 
 
 class DeviceInfo(BaseModel):
