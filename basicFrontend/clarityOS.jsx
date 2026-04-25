@@ -100,6 +100,9 @@ export default function ClarityOS() {
         >
           Disconnect
         </button>
+        <button onClick={startStream} >
+        Start EEG Stream
+        </button>
       </div>
     );
   }

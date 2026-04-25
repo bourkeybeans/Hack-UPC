@@ -20,6 +20,7 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+
 app.add_middleware(
     CORSMiddleware,
     # Allow any Vite local dev origin (localhost/127.0.0.1 on any port)
