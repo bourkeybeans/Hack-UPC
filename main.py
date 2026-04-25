@@ -1,5 +1,6 @@
 import asyncio
 from backend.utils.muse.MuseHeadset import MuseHeadset
+from BrainPipeline import BrainPipeline
 
 def print_eeg(data, timestamps):
     print("EEG frame:")
@@ -9,7 +10,10 @@ def print_eeg(data, timestamps):
 
 
 async def main():
-    muse = MuseHeadset(callback=print_eeg)
+    
+    # Pipeline forwards eeg data to metric computator, to compute focus stuff
+    pipeline = BrainPipeline()
+    muse = MuseHeadset(callback=pipeline.on_eeg)
 
     await muse.connect()
     await muse.start()
