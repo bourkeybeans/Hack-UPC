@@ -5,53 +5,66 @@ from collections import deque
 import threading
 
 
-class EEGVisualizer:
-    def __init__(self, sample_rate=256, window_seconds=5):
+class EEGVisualiser:
+    def __init__(self, sample_rate=256, window_seconds=5, n_channels=5):
         self.sample_rate = sample_rate
         self.max_samples = sample_rate * window_seconds
+        self.n_channels = n_channels
 
-        # rolling buffers (deque = efficient sliding window)
-        self.buffer_ch1 = deque(maxlen=self.max_samples)
-        self.buffer_ch2 = deque(maxlen=self.max_samples)
+        # create one buffer per channel
+        self.buffers = [
+            deque(maxlen=self.max_samples) for _ in range(n_channels)
+        ]
 
         self.lock = threading.Lock()
 
         # setup plot
         self.fig, self.ax = plt.subplots()
-        self.line1, = self.ax.plot([], [], label="Channel 1")
-        self.line2, = self.ax.plot([], [], label="Channel 2")
 
-        self.ax.set_title("Real-time EEG")
+        self.lines = []
+        for i in range(n_channels):
+            line, = self.ax.plot([], [], label=f"Ch {i+1}")
+            self.lines.append(line)
+
+        self.ax.set_title("Muse Headset EEG Data (5 channels)")
         self.ax.set_xlabel("Samples")
         self.ax.set_ylabel("Amplitude (µV)")
-        self.ax.legend()
+        self.ax.legend(loc="upper right")
+
+        # vertical spacing between channels
+        self.channel_spacing = 300
 
     def update_data(self, data, timestamps):
         """
         data shape = (5 channels, 12 samples)
         """
         with self.lock:
-            # take first 2 channels for clarity
-            self.buffer_ch1.extend(data[0])
-            self.buffer_ch2.extend(data[1])
+            for ch in range(self.n_channels):
+                self.buffers[ch].extend(data[ch])
 
     def _update_plot(self, frame):
         with self.lock:
-            y1 = np.array(self.buffer_ch1)
-            y2 = np.array(self.buffer_ch2)
+            ys = [np.array(buf) for buf in self.buffers]
 
-        if len(y1) == 0:
-            return self.line1, self.line2
+        if len(ys[0]) == 0:
+            return self.lines
 
-        x = np.arange(len(y1))
+        x = np.arange(len(ys[0]))
 
-        self.line1.set_data(x, y1)
-        self.line2.set_data(x, y2)
+        for i, line in enumerate(self.lines):
+            # stack channels vertically
+            y = ys[i] + i * self.channel_spacing
+            line.set_data(x, y)
 
         self.ax.set_xlim(0, self.max_samples)
-        self.ax.set_ylim(-500, 500)  # adjust if needed
 
-        return self.line1, self.line2
+        # adjust y limits dynamically based on number of channels
+        self.ax.set_ylim(
+            -500,
+            self.channel_spacing * self.n_channels
+        )
+
+        return self.lines
 
     def start(self):
         self.ani = FuncAnimation(
@@ -59,6 +72,6 @@ class EEGVisualizer:
             self._update_plot,
             interval=50,
             blit=True,
-            cache_frame_data=False  # fixes warning
+            cache_frame_data=False
         )
         plt.show()
