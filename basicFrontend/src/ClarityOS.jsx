@@ -4,13 +4,11 @@ import {
   Activity, 
   User, 
   Bluetooth, 
-  CheckCircle2, 
-  BrainCircuit,
   ArrowRight,
-  ShieldCheck,
-  Waves,
-  Focus
+  BrainCircuit,
+  CheckCircle2
 } from 'lucide-react';
+import FlappyFocus from './FlappyFocus.jsx';
 
 const API = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 const WS_BASE = API.replace(/^http/, "ws");
@@ -52,7 +50,7 @@ const Card = ({ children, title, subtitle, className = "", headerAction = null }
   </div>
 );
 
-const AppLayout = ({ children, onDisconnect, view }) => (
+const AppLayout = ({ children, onDisconnect, view, activeTab, onTabChange }) => (
   <div className="min-h-screen bg-[#FDFDFD] text-gray-900 font-sans selection:bg-black selection:text-white overflow-x-hidden">
     <nav className="flex items-center justify-between px-8 py-6 max-w-7xl mx-auto border-b border-gray-50 md:border-none">
       <div className="flex items-center gap-2">
@@ -61,11 +59,24 @@ const AppLayout = ({ children, onDisconnect, view }) => (
         </div>
         <span className="font-bold text-xl tracking-tight uppercase">ClarityOS</span>
       </div>
-      <div className="hidden lg:flex items-center gap-10 text-xs font-bold uppercase tracking-widest text-gray-400">
-        <a href="#" className="hover:text-black transition-colors">Protocol</a>
-        <a href="#" className="hover:text-black transition-colors">Hardware</a>
-        <a href="#" className="hover:text-black transition-colors">Insights</a>
-      </div>
+      
+      {view === 'connected' && (
+        <div className="hidden md:flex bg-gray-100/50 p-1 rounded-full border border-gray-100">
+          <button 
+            onClick={() => onTabChange('telemetry')} 
+            className={`px-6 py-2 text-xs font-bold uppercase tracking-widest rounded-full transition-all ${activeTab === 'telemetry' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            Telemetry
+          </button>
+          <button 
+            onClick={() => onTabChange('game')} 
+            className={`px-6 py-2 text-xs font-bold uppercase tracking-widest rounded-full transition-all ${activeTab === 'game' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            Focus Game
+          </button>
+        </div>
+      )}
+
       <div className="flex items-center gap-4">
         {view === 'connected' && (
           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-green-50 text-green-700 rounded-full text-[10px] font-bold uppercase tracking-tighter">
@@ -209,10 +220,15 @@ export default function ClarityOS() {
   const chartRef = useRef(null);
   const chartCanvasRef = useRef(null);
   const eegBuffersRef = useRef(Array.from({ length: 5 }, () => []));
+  const lastSampleRef = useRef(0);
+  
+  // Game & Tabs state
+  const [activeTab, setActiveTab] = useState('telemetry');
+  const [lastBlinkTime, setLastBlinkTime] = useState(0);
+  const lastBlinkTimeRef = useRef(0);
 
   // Session state
   const [seconds, setSeconds] = useState(0);
-  const [focusScore, setFocusScore] = useState(84);
 
   // Focus Timer Logic
   useEffect(() => {
@@ -220,10 +236,6 @@ export default function ClarityOS() {
     if (isStreaming) {
       interval = setInterval(() => {
         setSeconds(s => s + 1);
-        setFocusScore(prev => {
-          const drift = Math.random() > 0.6 ? 1 : -1;
-          return Math.min(Math.max(prev + drift, 75), 98);
-        });
       }, 1000);
     } else {
       clearInterval(interval);
@@ -316,6 +328,26 @@ export default function ClarityOS() {
     const channels = frame?.data;
     if (!Array.isArray(channels)) return;
 
+    // Simple blink detection on Channel 1 (AF7)
+    const af7Samples = channels[1];
+    if (Array.isArray(af7Samples) && af7Samples.length > 0) {
+      for (let i = 0; i < af7Samples.length; i++) {
+        const val = Number(af7Samples[i]);
+        if (lastSampleRef.current !== 0) {
+          const delta = Math.abs(val - lastSampleRef.current);
+          if (delta > 150) { // Lowered Blink threshold
+            const now = Date.now();
+            if (now - lastBlinkTimeRef.current > 500) { // 500ms debounce via ref
+              lastBlinkTimeRef.current = now;
+              setLastBlinkTime(now); // trigger React render for the game
+              break; // One blink per frame is enough
+            }
+          }
+        }
+        lastSampleRef.current = val;
+      }
+    }
+
     channels.forEach((samples, index) => {
       if (!Array.isArray(samples) || !eegBuffersRef.current[index]) return;
       eegBuffersRef.current[index].push(...samples.map(Number));
@@ -384,9 +416,9 @@ export default function ClarityOS() {
     return () => stopStreaming();
   }, []);
 
-  // Initialize Chart when entering 'connected' view
+  // Initialize Chart when entering 'connected' view and 'telemetry' tab
   useEffect(() => {
-    if (view !== "connected" || !chartCanvasRef.current) return;
+    if (view !== "connected" || activeTab !== "telemetry" || !chartCanvasRef.current) return;
 
     const context = chartCanvasRef.current.getContext("2d");
     chartRef.current = new Chart(context, {
@@ -427,10 +459,10 @@ export default function ClarityOS() {
         chartRef.current = null;
       }
     };
-  }, [view]);
+  }, [view, activeTab]);
 
   return (
-    <AppLayout onDisconnect={handleDisconnectDevice} view={view}>
+    <AppLayout onDisconnect={handleDisconnectDevice} view={view} activeTab={activeTab} onTabChange={setActiveTab}>
       {view === 'launch' && (
         <LaunchPage 
           discover={discover} 
@@ -441,7 +473,7 @@ export default function ClarityOS() {
         />
       )}
       {view === 'loading' && <LoadingPage />}
-      {view === 'connected' && (
+      {view === 'connected' && activeTab === 'telemetry' && (
         <div className="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-4 space-y-6">
             <Card 
@@ -464,31 +496,26 @@ export default function ClarityOS() {
                   >
                     {isStreaming ? "Stop Streaming" : "Enter Flow State"}
                   </Button>
+                  <Button 
+                    variant="ghost"
+                    onClick={handleDisconnectDevice}
+                    className="w-full h-12 text-red-500 hover:text-red-600 hover:bg-red-50"
+                  >
+                    Disconnect Device
+                  </Button>
                 </div>
               </div>
-            </Card>
-
-            <Card title="Focus Depth" subtitle="Live Neural Intensity">
-               <div className="flex items-end gap-2 mb-4 h-24">
-                 {[40, 60, 45, 80, 70, 90, 85, 95, 80].map((h, i) => (
-                   <div 
-                     key={i} 
-                     className={`flex-1 rounded-t-lg transition-all duration-1000 ${isStreaming ? 'bg-black' : 'bg-gray-100'}`} 
-                     style={{ height: isStreaming ? `${h}%` : '20%' }}
-                   />
-                 ))}
-               </div>
             </Card>
           </div>
 
           <div className="lg:col-span-8 space-y-8">
             <Card title="Neural Visualization" subtitle="Pre-frontal Cortex Telemetry">
-              <div className="w-full h-80 bg-gray-50/50 rounded-3xl relative overflow-hidden flex items-center justify-center p-4">
+              <div className="w-full h-[420px] bg-gray-50/50 rounded-3xl relative overflow-hidden p-4">
                  <div className="w-full h-full relative">
                    <canvas ref={chartCanvasRef} />
                  </div>
                  {!isStreaming && (
-                   <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center">
+                   <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center z-10">
                      <p className="text-sm font-medium text-gray-400 bg-white px-4 py-2 rounded-full border border-gray-100 shadow-sm">
                        Start session to activate telemetry
                      </p>
@@ -497,26 +524,16 @@ export default function ClarityOS() {
               </div>
             </Card>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[
-                { label: 'Distraction Immunity', value: isStreaming ? 'High' : '--', icon: ShieldCheck },
-                { label: 'Cognitive Load', value: isStreaming ? 'Optimal' : '--', icon: Focus },
-                { label: 'Peak Flow', value: isStreaming ? `${focusScore}%` : '0%', icon: Waves },
-              ].map((stat, i) => (
-                <div key={i} className="bg-white p-8 rounded-[2rem] border border-gray-50 flex flex-col gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center"><stat.icon size={20} /></div>
-                  <div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{stat.label}</p>
-                    <p className="text-2xl font-bold">{stat.value}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
             {error && (
               <p className="text-red-500 font-medium">{error}</p>
             )}
           </div>
+        </div>
+      )}
+      
+      {view === 'connected' && activeTab === 'game' && (
+        <div className="mt-12 max-w-4xl mx-auto">
+          <FlappyFocus isStreaming={isStreaming} lastBlinkTime={lastBlinkTime} />
         </div>
       )}
       <div className="fixed top-0 left-1/2 -translate-x-1/2 -z-10 w-full h-[600px] bg-gradient-to-b from-gray-50/50 to-transparent"></div>
