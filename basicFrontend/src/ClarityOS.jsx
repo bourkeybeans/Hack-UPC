@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { Chart, registerables } from "chart.js";
-import { 
-  Activity, 
-  User, 
-  Bluetooth, 
+import {
+  Activity,
+  User,
+  Bluetooth,
   ArrowRight,
   BrainCircuit,
   CheckCircle2
 } from 'lucide-react';
 import FlappyFocus from './FlappyFocus.jsx';
 import ProcessedWaves from './ProcessedWaves.jsx';
+import BrainCanvas from './BrainCanvas.jsx';
 
 const API = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 const WS_BASE = API.replace(/^http/, "ws");
@@ -60,41 +61,29 @@ const AppLayout = ({ children, onDisconnect, view, activeTab, onTabChange }) => 
         </div>
         <span className="font-bold text-xl tracking-tight uppercase">ClarityOS</span>
       </div>
-      
+
       {view === 'connected' && (
         <div className="hidden md:flex bg-gray-100/50 p-1 rounded-full border border-gray-100">
-          <button 
-            onClick={() => onTabChange('telemetry')} 
+          <button
+            onClick={() => onTabChange('telemetry')}
             className={`px-6 py-2 text-xs font-bold uppercase tracking-widest rounded-full transition-all ${activeTab === 'telemetry' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}
           >
             Telemetry
           </button>
-          <button 
-            onClick={() => onTabChange('processed')} 
+          <button
+            onClick={() => onTabChange('processed')}
             className={`px-6 py-2 text-xs font-bold uppercase tracking-widest rounded-full transition-all ${activeTab === 'processed' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}
           >
             Waves
           </button>
-          <button 
-            onClick={() => onTabChange('game')} 
+          <button
+            onClick={() => onTabChange('game')}
             className={`px-6 py-2 text-xs font-bold uppercase tracking-widest rounded-full transition-all ${activeTab === 'game' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}
           >
             Focus Game
           </button>
         </div>
       )}
-
-      <div className="flex items-center gap-4">
-        {view === 'connected' && (
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-green-50 text-green-700 rounded-full text-[10px] font-bold uppercase tracking-tighter">
-            <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-            Link Active
-          </div>
-        )}
-        <Button variant="secondary" className="px-4 py-2 text-sm border-none bg-gray-50" onClick={onDisconnect}>
-          <User size={16} />
-        </Button>
-      </div>
     </nav>
     <main className="max-w-7xl mx-auto px-6 pb-20">
       {children}
@@ -105,19 +94,31 @@ const AppLayout = ({ children, onDisconnect, view, activeTab, onTabChange }) => 
 // --- Launch Page ---
 const LaunchPage = ({ discover, devices, connect, isDiscovering, error }) => {
   return (
-    <div className="flex flex-col items-center justify-center py-24 text-center">
-      <div className="max-w-3xl">
+    // relative allows the absolute brain to position itself correctly
+    <div className="relative flex flex-col items-center justify-center py-24 text-center min-h-[80vh]">
+
+      {/* 1. 3D Brain Background Layer */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <BrainCanvas />
+      </div>
+
+      {/* 2. Content Layer (z-10 ensures text is above the brain) */}
+      <div className="max-w-3xl relative z-10">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gray-50 text-[10px] font-bold tracking-[0.2em] text-gray-400 mb-8 border border-gray-100">
           DEEP WORK OPTIMIZATION ENGINE
         </div>
+
         <h1 className="text-6xl md:text-8xl font-bold tracking-tighter mb-8 leading-[0.95]">
           Quantify your <br />
-          <span className="text-gray-300">inner focus.</span>
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-400 to-black">
+            inner focus.
+          </span>
         </h1>
-        <p className="text-xl text-gray-400 mb-12 max-w-xl mx-auto leading-relaxed font-light">
+
+        <p className="text-xl text-gray-900 font-medium mb-12 max-w-xl mx-auto leading-relaxed drop-shadow-sm">
           Unlock your cognitive peak. Connect your EEG device to measure flow state, eliminate distractions, and master deep work.
         </p>
-        
+
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Button onClick={discover} disabled={isDiscovering} className="w-full sm:w-80 h-16 text-lg shadow-2xl shadow-black/20">
             {isDiscovering ? (
@@ -135,15 +136,17 @@ const LaunchPage = ({ discover, devices, connect, isDiscovering, error }) => {
         </div>
 
         {error && (
-          <p className="mt-6 text-red-500 max-w-xl mx-auto">{error}</p>
+          <p className="mt-6 text-red-500 max-w-xl mx-auto font-medium">{error}</p>
         )}
 
         {devices.length > 0 && (
-          <div className="mt-12 flex flex-col items-center gap-4">
+          <div className="mt-12 flex flex-col items-center gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <h3 className="text-sm font-bold tracking-[0.2em] text-gray-400 uppercase mb-2">Available Devices</h3>
             {devices.map((d) => (
-              <div key={d.address} className="flex items-center gap-4 bg-white px-6 py-4 rounded-full border border-gray-100 shadow-sm w-full max-w-md justify-between hover:shadow-md transition-shadow">
-                <span className="font-medium text-gray-800">{d.name} <span className="text-xs text-gray-400">({d.address})</span></span>
+              <div key={d.address} className="flex items-center gap-4 bg-white/80 backdrop-blur-md px-6 py-4 rounded-full border border-gray-100 shadow-sm w-full max-w-md justify-between hover:shadow-md transition-shadow">
+                <span className="font-medium text-gray-800">
+                  {d.name} <span className="text-xs text-gray-400">({d.address})</span>
+                </span>
                 <Button variant="secondary" className="px-4 py-2 text-sm" onClick={() => connect(d.address)}>
                   Connect
                 </Button>
@@ -151,12 +154,6 @@ const LaunchPage = ({ discover, devices, connect, isDiscovering, error }) => {
             ))}
           </div>
         )}
-      </div>
-
-      <div className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-8 opacity-40">
-        {['CALIBRATED', 'REAL-TIME', 'PRIVATE', 'ENCRYPTED'].map(text => (
-          <div key={text} className="text-[10px] font-bold tracking-[0.3em] text-gray-400">{text}</div>
-        ))}
       </div>
     </div>
   );
@@ -191,17 +188,16 @@ const LoadingPage = () => {
           <BrainCircuit className="text-black w-12 h-12" />
         </div>
       </div>
-      
+
       <div className="text-center">
         <h2 className="text-lg font-bold tracking-[0.2em] text-gray-400 uppercase mb-6">System Handshake</h2>
         <div className="space-y-3">
           {steps.map((text, i) => (
-            <div 
-              key={i} 
-              className={`text-sm transition-all duration-700 flex items-center justify-center gap-3 ${
-                i === step ? "text-black font-semibold translate-x-0" : 
-                i < step ? "text-green-500 opacity-40 -translate-y-1" : "text-gray-200 opacity-20 translate-y-1"
-              }`}
+            <div
+              key={i}
+              className={`text-sm transition-all duration-700 flex items-center justify-center gap-3 ${i === step ? "text-black font-semibold translate-x-0" :
+                  i < step ? "text-green-500 opacity-40 -translate-y-1" : "text-gray-200 opacity-20 translate-y-1"
+                }`}
             >
               {i < step ? <CheckCircle2 size={16} /> : i === step ? <Activity size={16} className="animate-pulse" /> : <div className="w-4" />}
               {text}
@@ -220,7 +216,7 @@ export default function ClarityOS() {
   const [view, setView] = useState("launch"); // launch | loading | connected
   const [isDiscovering, setIsDiscovering] = useState(false);
   const [error, setError] = useState("");
-  
+
   // Streaming state
   const [isStreaming, setIsStreaming] = useState(false);
   const wsRef = useRef(null);
@@ -228,7 +224,7 @@ export default function ClarityOS() {
   const chartCanvasRef = useRef(null);
   const eegBuffersRef = useRef(Array.from({ length: 5 }, () => []));
   const lastSampleRef = useRef(0);
-  
+
   // Game & Tabs state
   const [activeTab, setActiveTab] = useState('telemetry');
   const [lastBlinkTime, setLastBlinkTime] = useState(0);
@@ -475,20 +471,20 @@ export default function ClarityOS() {
   return (
     <AppLayout onDisconnect={handleDisconnectDevice} view={view} activeTab={activeTab} onTabChange={setActiveTab}>
       {view === 'launch' && (
-        <LaunchPage 
-          discover={discover} 
-          devices={devices} 
-          connect={connect} 
-          isDiscovering={isDiscovering} 
-          error={error} 
+        <LaunchPage
+          discover={discover}
+          devices={devices}
+          connect={connect}
+          isDiscovering={isDiscovering}
+          error={error}
         />
       )}
       {view === 'loading' && <LoadingPage />}
       {view === 'connected' && (activeTab === 'telemetry' || activeTab === 'game') && (
         <div className="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-4 space-y-6">
-            <Card 
-              title="Session Protocol" 
+            <Card
+              title="Session Protocol"
               subtitle={`Device: ${status?.address || 'Unknown'}`}
               className={isStreaming ? "ring-2 ring-black ring-offset-4" : ""}
             >
@@ -500,14 +496,14 @@ export default function ClarityOS() {
                   {isStreaming ? 'Flow State Active' : 'Protocol Idle'}
                 </p>
                 <div className="flex flex-col gap-3">
-                  <Button 
+                  <Button
                     variant={isStreaming ? "secondary" : "primary"}
                     onClick={isStreaming ? stopStreaming : startStreaming}
                     className="w-full h-14"
                   >
                     {isStreaming ? "Stop Streaming" : "Enter Flow State"}
                   </Button>
-                  <Button 
+                  <Button
                     variant="ghost"
                     onClick={handleDisconnectDevice}
                     className="w-full h-12 text-red-500 hover:text-red-600 hover:bg-red-50"
@@ -523,16 +519,16 @@ export default function ClarityOS() {
             {activeTab === 'telemetry' && (
               <Card title="Neural Visualization" subtitle="Pre-frontal Cortex Telemetry">
                 <div className="w-full h-[420px] bg-gray-50/50 rounded-3xl relative overflow-hidden p-4">
-                   <div className="w-full h-full relative">
-                     <canvas ref={chartCanvasRef} />
-                   </div>
-                   {!isStreaming && (
-                     <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center z-10">
-                       <p className="text-sm font-medium text-gray-400 bg-white px-4 py-2 rounded-full border border-gray-100 shadow-sm">
-                         Start session to activate telemetry
-                       </p>
-                     </div>
-                   )}
+                  <div className="w-full h-full relative">
+                    <canvas ref={chartCanvasRef} />
+                  </div>
+                  {!isStreaming && (
+                    <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center z-10">
+                      <p className="text-sm font-medium text-gray-400 bg-white px-4 py-2 rounded-full border border-gray-100 shadow-sm">
+                        Start session to activate telemetry
+                      </p>
+                    </div>
+                  )}
                 </div>
               </Card>
             )}
@@ -549,7 +545,7 @@ export default function ClarityOS() {
           </div>
         </div>
       )}
-      
+
       {view === 'connected' && activeTab === 'processed' && (
         <ProcessedWaves status={status} handleDisconnectDevice={handleDisconnectDevice} />
       )}
