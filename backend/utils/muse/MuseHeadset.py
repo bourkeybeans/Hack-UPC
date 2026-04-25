@@ -4,6 +4,7 @@ import numpy as np
 from time import time
 from bleak import BleakClient, BleakScanner
 from typing import Optional
+from utils.muse.BrainPipeline import BrainPipeline
 
 
 MUSE_SERVICE = "0000fe8d-0000-1000-8000-00805f9b34fb"
@@ -25,7 +26,6 @@ class MuseHeadset:
         self.name = name
         self.callback = callback
         self.time_func = time_func
-
         self.client = None
 
         # EEG state
@@ -211,3 +211,7 @@ class MuseHeadset:
                 self.callback(self.data.copy(), timestamps.copy())
 
             self._init_sample()
+
+
+    def set_callback(self, callback) -> None:
+        self.callback = callback
