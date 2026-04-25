@@ -1,6 +1,6 @@
 import asyncio
 from backend.utils.muse.MuseHeadset import MuseHeadset
-from BrainPipeline import BrainPipeline
+from backend.utils.muse.BrainPipeline import BrainPipeline
 
 def print_eeg(data, timestamps):
     print("EEG frame:")
