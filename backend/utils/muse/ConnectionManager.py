@@ -1,5 +1,6 @@
 import asyncio
 from utils.muse.MuseHeadset import MuseHeadset
+from utils.muse.EEGProcessor import EEGProcessor
 
 class ConnectionManager:
     """
@@ -17,6 +18,13 @@ class ConnectionManager:
         self.eeg_queue = asyncio.Queue()
         self.loop = asyncio.get_event_loop()
         self.streaming = False
+
+        self.processor = EEGProcessor(
+            num_channels=5,
+            sample_rate=256,
+            window_seconds=2,
+            smoothing=0.3
+        )
 
     async def connect(self, address: str) -> bool:
         """
@@ -70,7 +78,20 @@ class ConnectionManager:
         return self.muse
     
 
-    async def start_streaming(self):
+    async def start_streaming_raw_telemetry(self):
+        if not self.connected:
+            raise RuntimeError("Not connected")
+
+        if self.streaming:
+            return
+
+        def eeg_callback(data, timestamps):
+            """
+            data shape (Muse):
+            typically (channels, samples)
+            e.g. (5, N)
+            """
+
         if not self.connected:
             raise RuntimeError("Not connected")
 
@@ -91,7 +112,44 @@ class ConnectionManager:
         await self.muse.start()
         self.streaming = True
 
-        print("Requested to start streaming")
+        print("Requested to start streaming raw telemetry")
+    
+
+    async def start_streaming_processed_signal(self):
+        if not self.connected:
+            raise RuntimeError("Not connected")
+
+        if self.streaming:
+            return
+
+        def eeg_callback(data, timestamps):
+            """
+            data shape (Muse):
+            typically (channels, samples)
+            e.g. (5, N)
+            """
+
+            data = data.tolist()  # convert once
+
+            num_samples = len(data[0])  # samples per channel
+
+            for i in range(num_samples):
+                # Build one sample across all channels
+                sample = [data[ch][i] for ch in range(len(data))]
+
+                result = self.processor.update(sample)
+
+                if result is not None:
+                    self.loop.call_soon_threadsafe(
+                        self.eeg_queue.put_nowait,
+                        result
+                    )
+
+        self.muse.set_callback(eeg_callback)
+        await self.muse.start()
+        self.streaming = True
+
+        print("Requested to start streaming processed data")
 
 
     async def stop_streaming(self):
