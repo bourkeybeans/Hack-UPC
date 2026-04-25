@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from Muse import Muse
 
 
 app = FastAPI()
@@ -11,4 +12,5 @@ def home():
 
 @app.get("/connect")
 def connect():
+
     return "connecting"
