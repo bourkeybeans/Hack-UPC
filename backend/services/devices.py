@@ -85,7 +85,7 @@ async def disconnect(manager = Depends(require_connection)) -> ConnectionStatus:
 
     await manager.disconnect()
 
-    return ConnectionStatus(isConnected=False, address=None)
+    return ConnectionStatus(isConnected=False, address="")
 
 
 @router.get("/connection-status")

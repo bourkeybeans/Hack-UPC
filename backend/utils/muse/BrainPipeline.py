@@ -1,4 +1,4 @@
-from MetricComputator import MetricComputator
+from utils.muse.MetricComputator import MetricComputator
 
 class BrainPipeline:
     def __init__(self):
