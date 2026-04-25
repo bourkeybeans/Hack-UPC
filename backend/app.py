@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from services import devices
+from services import eeg
 
 from utils.muse.ConnectionManager import get_connection_manager
 
@@ -13,7 +14,9 @@ async def lifespan(_: FastAPI):
 
     # Shutdown
     print("Shutting down: disconnecting Muse...")
-    await get_connection_manager().disconnect()
+    manager = get_connection_manager()
+    await manager.stop_streaming()
+    await manager.disconnect()
 
 app = FastAPI(lifespan=lifespan)
 
@@ -31,6 +34,13 @@ app.include_router(
     devices.router,
     prefix="/devices",
     tags=["devices"]
+)
+
+# Include the EEG streaming service
+app.include_router(
+    eeg.router,
+    prefix="/eeg",
+    tags=["eeg"]
 )
 
 

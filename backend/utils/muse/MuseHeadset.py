@@ -211,3 +211,7 @@ class MuseHeadset:
                 self.callback(self.data.copy(), timestamps.copy())
 
             self._init_sample()
+
+
+    def set_callback(self, callback) -> None:
+        self.callback = callback
