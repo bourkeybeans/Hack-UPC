@@ -1,4 +1,5 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+
 from utils.muse.ConnectionManager import get_connection_manager
 
 router = APIRouter()
@@ -15,7 +16,38 @@ async def eeg_stream(websocket: WebSocket):
         return
 
     try:
-        await manager.start_streaming()
+        await manager.start_streaming_processed_signal()
+
+        while True:
+            data = await manager.get_eeg_data()
+
+            await websocket.send_json({
+                "eeg": data
+            })
+
+    except WebSocketDisconnect:
+        print("Client disconnected")
+
+    except Exception as e:
+        print(f"Streaming error: {e}")
+
+    finally:
+        await manager.stop_streaming()
+
+
+@router.websocket("/stream-raw")
+async def eeg_stream(websocket: WebSocket):
+    await websocket.accept()
+
+    manager = get_connection_manager()
+
+    if not manager.connected:
+        await websocket.send_json({"error": "No device connected"})
+        await websocket.close()
+        return
+
+    try:
+        await manager.start_streaming_raw_telemetry()
 
         while True:
             data = await manager.get_eeg_data()
