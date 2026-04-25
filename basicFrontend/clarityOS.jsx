@@ -15,7 +15,7 @@ export default function ClarityOS() {
     setDevices(data);
   };
 
- // connect call
+  // connect call
   const connect = async (address) => {
     setView("loading");
 
@@ -43,14 +43,14 @@ export default function ClarityOS() {
     }, 500);
   };
 
- // UI
+  // UI
   if (view === "launch") {
     return (
       <div style={{ padding: 40, fontFamily: "sans-serif" }}>
         <h1>ClarityOS</h1>
 
         <button onClick={discover}>
-          Discover Muse Devices
+          Pair Brain Scanner
         </button>
 
         <div style={{ marginTop: 20 }}>
@@ -74,7 +74,7 @@ export default function ClarityOS() {
     return (
       <div style={{ padding: 40, fontFamily: "sans-serif" }}>
         <h2>Connecting...</h2>
-        <p>Waiting for Muse headset connection</p>
+        <p>Waiting for EEG connection</p>
       </div>
     );
   }
@@ -101,7 +101,7 @@ export default function ClarityOS() {
           Disconnect
         </button>
         <button onClick={startStream} >
-        Start EEG Stream
+          Start EEG Stream
         </button>
       </div>
     );
