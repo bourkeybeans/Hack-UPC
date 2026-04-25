@@ -82,9 +82,8 @@ export default function ClarityOS() {
   if (view === "connected") {
     return (
       <div style={{ padding: 40, fontFamily: "sans-serif" }}>
-        <h1>Connected ✅</h1>
+        <h1>Connected Brain Scanner!</h1>
 
-        <p>Device: {status?.address}</p>
         <p>Status: {status?.isConnected ? "Live" : "Disconnected"}</p>
 
         <button
