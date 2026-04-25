@@ -9,6 +9,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import FlappyFocus from './FlappyFocus.jsx';
+import BrainCanvas from './BrainCanvas.jsx';
 
 const API = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 const WS_BASE = API.replace(/^http/, "ws");
@@ -86,15 +87,27 @@ const AppLayout = ({ children, onDisconnect, view, activeTab, onTabChange }) => 
 // --- Launch Page ---
 const LaunchPage = ({ discover, devices, connect, isDiscovering, error }) => {
   return (
-    <div className="flex flex-col items-center justify-center py-24 text-center">
-      <div className="max-w-3xl">
+    // relative allows the absolute brain to position itself correctly
+    <div className="relative flex flex-col items-center justify-center py-24 text-center min-h-[80vh]">
+      
+      {/* 1. 3D Brain Background Layer */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <BrainCanvas />
+      </div>
+
+      {/* 2. Content Layer (z-10 ensures text is above the brain) */}
+      <div className="max-w-3xl relative z-10">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gray-50 text-[10px] font-bold tracking-[0.2em] text-gray-400 mb-8 border border-gray-100">
           DEEP WORK OPTIMIZATION ENGINE
         </div>
+        
         <h1 className="text-6xl md:text-8xl font-bold tracking-tighter mb-8 leading-[0.95]">
           Quantify your <br />
-          <span className="text-gray-300">inner focus.</span>
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-400 to-black">
+            inner focus.
+          </span>
         </h1>
+
         <p className="text-xl text-gray-400 mb-12 max-w-xl mx-auto leading-relaxed font-light">
           Unlock your cognitive peak. Connect your EEG device to measure flow state, eliminate distractions, and master deep work.
         </p>
@@ -116,15 +129,17 @@ const LaunchPage = ({ discover, devices, connect, isDiscovering, error }) => {
         </div>
 
         {error && (
-          <p className="mt-6 text-red-500 max-w-xl mx-auto">{error}</p>
+          <p className="mt-6 text-red-500 max-w-xl mx-auto font-medium">{error}</p>
         )}
 
         {devices.length > 0 && (
-          <div className="mt-12 flex flex-col items-center gap-4">
+          <div className="mt-12 flex flex-col items-center gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <h3 className="text-sm font-bold tracking-[0.2em] text-gray-400 uppercase mb-2">Available Devices</h3>
             {devices.map((d) => (
-              <div key={d.address} className="flex items-center gap-4 bg-white px-6 py-4 rounded-full border border-gray-100 shadow-sm w-full max-w-md justify-between hover:shadow-md transition-shadow">
-                <span className="font-medium text-gray-800">{d.name} <span className="text-xs text-gray-400">({d.address})</span></span>
+              <div key={d.address} className="flex items-center gap-4 bg-white/80 backdrop-blur-md px-6 py-4 rounded-full border border-gray-100 shadow-sm w-full max-w-md justify-between hover:shadow-md transition-shadow">
+                <span className="font-medium text-gray-800">
+                  {d.name} <span className="text-xs text-gray-400">({d.address})</span>
+                </span>
                 <Button variant="secondary" className="px-4 py-2 text-sm" onClick={() => connect(d.address)}>
                   Connect
                 </Button>
