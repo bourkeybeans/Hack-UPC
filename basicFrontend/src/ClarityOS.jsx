@@ -76,18 +76,6 @@ const AppLayout = ({ children, onDisconnect, view, activeTab, onTabChange }) => 
           </button>
         </div>
       )}
-
-      <div className="flex items-center gap-4">
-        {view === 'connected' && (
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-green-50 text-green-700 rounded-full text-[10px] font-bold uppercase tracking-tighter">
-            <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-            Link Active
-          </div>
-        )}
-        <Button variant="secondary" className="px-4 py-2 text-sm border-none bg-gray-50" onClick={onDisconnect}>
-          <User size={16} />
-        </Button>
-      </div>
     </nav>
     <main className="max-w-7xl mx-auto px-6 pb-20">
       {children}
@@ -144,12 +132,6 @@ const LaunchPage = ({ discover, devices, connect, isDiscovering, error }) => {
             ))}
           </div>
         )}
-      </div>
-
-      <div className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-8 opacity-40">
-        {['CALIBRATED', 'REAL-TIME', 'PRIVATE', 'ENCRYPTED'].map(text => (
-          <div key={text} className="text-[10px] font-bold tracking-[0.3em] text-gray-400">{text}</div>
-        ))}
       </div>
     </div>
   );
