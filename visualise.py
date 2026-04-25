@@ -1,7 +1,7 @@
 import threading
 import asyncio
 
-from MuseHeadset import MuseHeadset
+from backend.utils.muse.MuseHeadset import MuseHeadset
 from EEGVisualiser import EEGVisualiser
 
 stop_event = threading.Event()
