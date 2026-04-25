@@ -78,8 +78,6 @@ class ConnectionManager:
             return
 
         def eeg_callback(data, timestamps):
-            
-            print(data)
 
             self.loop.call_soon_threadsafe(
                 self.eeg_queue.put_nowait,
