@@ -9,6 +9,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import FlappyFocus from './FlappyFocus.jsx';
+import ProcessedWaves from './ProcessedWaves.jsx';
 
 const API = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 const WS_BASE = API.replace(/^http/, "ws");
@@ -67,6 +68,12 @@ const AppLayout = ({ children, onDisconnect, view, activeTab, onTabChange }) => 
             className={`px-6 py-2 text-xs font-bold uppercase tracking-widest rounded-full transition-all ${activeTab === 'telemetry' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}
           >
             Telemetry
+          </button>
+          <button 
+            onClick={() => onTabChange('processed')} 
+            className={`px-6 py-2 text-xs font-bold uppercase tracking-widest rounded-full transition-all ${activeTab === 'processed' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            Waves
           </button>
           <button 
             onClick={() => onTabChange('game')} 
@@ -231,6 +238,10 @@ export default function ClarityOS() {
   const [seconds, setSeconds] = useState(0);
 
   // Focus Timer Logic
+  useEffect(() => {
+    stopStreaming(); // Automatically disconnect stream when switching tabs
+  }, [activeTab]);
+
   useEffect(() => {
     let interval = null;
     if (isStreaming) {
@@ -473,7 +484,7 @@ export default function ClarityOS() {
         />
       )}
       {view === 'loading' && <LoadingPage />}
-      {view === 'connected' && activeTab === 'telemetry' && (
+      {view === 'connected' && (activeTab === 'telemetry' || activeTab === 'game') && (
         <div className="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-4 space-y-6">
             <Card 
@@ -509,20 +520,28 @@ export default function ClarityOS() {
           </div>
 
           <div className="lg:col-span-8 space-y-8">
-            <Card title="Neural Visualization" subtitle="Pre-frontal Cortex Telemetry">
-              <div className="w-full h-[420px] bg-gray-50/50 rounded-3xl relative overflow-hidden p-4">
-                 <div className="w-full h-full relative">
-                   <canvas ref={chartCanvasRef} />
-                 </div>
-                 {!isStreaming && (
-                   <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center z-10">
-                     <p className="text-sm font-medium text-gray-400 bg-white px-4 py-2 rounded-full border border-gray-100 shadow-sm">
-                       Start session to activate telemetry
-                     </p>
+            {activeTab === 'telemetry' && (
+              <Card title="Neural Visualization" subtitle="Pre-frontal Cortex Telemetry">
+                <div className="w-full h-[420px] bg-gray-50/50 rounded-3xl relative overflow-hidden p-4">
+                   <div className="w-full h-full relative">
+                     <canvas ref={chartCanvasRef} />
                    </div>
-                 )}
+                   {!isStreaming && (
+                     <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center z-10">
+                       <p className="text-sm font-medium text-gray-400 bg-white px-4 py-2 rounded-full border border-gray-100 shadow-sm">
+                         Start session to activate telemetry
+                       </p>
+                     </div>
+                   )}
+                </div>
+              </Card>
+            )}
+
+            {activeTab === 'game' && (
+              <div className="max-w-4xl mx-auto">
+                <FlappyFocus isStreaming={isStreaming} lastBlinkTime={lastBlinkTime} />
               </div>
-            </Card>
+            )}
 
             {error && (
               <p className="text-red-500 font-medium">{error}</p>
@@ -531,10 +550,8 @@ export default function ClarityOS() {
         </div>
       )}
       
-      {view === 'connected' && activeTab === 'game' && (
-        <div className="mt-12 max-w-4xl mx-auto">
-          <FlappyFocus isStreaming={isStreaming} lastBlinkTime={lastBlinkTime} />
-        </div>
+      {view === 'connected' && activeTab === 'processed' && (
+        <ProcessedWaves status={status} handleDisconnectDevice={handleDisconnectDevice} />
       )}
       <div className="fixed top-0 left-1/2 -translate-x-1/2 -z-10 w-full h-[600px] bg-gradient-to-b from-gray-50/50 to-transparent"></div>
     </AppLayout>
