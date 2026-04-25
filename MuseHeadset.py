@@ -19,7 +19,7 @@ EEG_UUIDS = [
 CONTROL_UUID = "273e0001-4c4d-454d-96be-f03bac821358"
 
 
-class Muse:
+class MuseHeadset:
     def __init__(self, address=None, callback=None, name=None, time_func=time):
         self.address = address
         self.name = name

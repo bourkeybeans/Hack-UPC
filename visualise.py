@@ -1,11 +1,11 @@
 import threading
 import asyncio
 
-from Muse import Muse
-from EEGVisualiser import EEGVisualizer
+from MuseHeadset import MuseHeadset
+from EEGVisualiser import EEGVisualiser
 
 stop_event = threading.Event()
-visualizer = EEGVisualizer()
+visualizer = EEGVisualiser()
 
 def on_close(event):
     stop_event.set()
@@ -13,9 +13,9 @@ def on_close(event):
 visualizer.fig.canvas.mpl_connect('close_event', on_close)
 
 
-def run_ble_loop(visualizer: EEGVisualizer, stop_event: threading.Event):
+def run_ble_loop(visualizer: EEGVisualiser, stop_event: threading.Event):
     async def ble_main():
-        muse = Muse(callback=visualizer.update_data)
+        muse = MuseHeadset(callback=visualizer.update_data)
 
         await muse.connect()
         await muse.start()

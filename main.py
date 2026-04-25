@@ -1,5 +1,5 @@
 import asyncio
-from Muse import Muse
+from MuseHeadset import MuseHeadset
 
 def print_eeg(data, timestamps):
     print("EEG frame:")
@@ -9,7 +9,7 @@ def print_eeg(data, timestamps):
 
 
 async def main():
-    muse = Muse(callback=print_eeg)
+    muse = MuseHeadset(callback=print_eeg)
 
     await muse.connect()
     await muse.start()
