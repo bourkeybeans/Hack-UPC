@@ -108,7 +108,7 @@ const LaunchPage = ({ discover, devices, connect, isDiscovering, error }) => {
           </span>
         </h1>
 
-        <p className="text-xl text-gray-400 mb-12 max-w-xl mx-auto leading-relaxed font-light">
+        <p className="text-xl text-gray-900 font-medium mb-12 max-w-xl mx-auto leading-relaxed drop-shadow-sm">
           Unlock your cognitive peak. Connect your EEG device to measure flow state, eliminate distractions, and master deep work.
         </p>
         
