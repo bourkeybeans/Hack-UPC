@@ -4,7 +4,7 @@ import numpy as np
 from time import time
 from bleak import BleakClient, BleakScanner
 from typing import Optional
-from utils.muse.BrainPipeline import BrainPipeline
+#from utils.muse.BrainPipeline import BrainPipeline
 
 
 MUSE_SERVICE = "0000fe8d-0000-1000-8000-00805f9b34fb"
